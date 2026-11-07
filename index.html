@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yara Al-Alawi | Game Design & Programming Portfolio 2026</title>
+<!--
+╔══════════════════════════════════════════════════════════════════╗
+  طريقة الاستخدام:
+  1) افتحي الملف في Chrome → كل صفحة = فريم 1920×1080 في فيقما.
+  2) المربعات المنقطة = أماكن صورك. كل مربع مكتوب عليه رقمه (IMG 03-A)
+     ووش تحطين فيه ومقاسه بالبكسل. سوي في فيقما Frame بنفس المقاس
+     وحطي صورتك فيه بـ Fill.
+  3) الخطوط كلها من Google Fonts وموجودة داخل فيقما:
+     Unbounded (العناوين) · Manrope (النص) · JetBrains Mono (ليبلات HUD) · Cairo (العربي)
+  4) طريق مختصر: Chrome → Print → Save as PDF → Margins: None
+     → فعّلي Background graphics. يطلع لك PDF جاهز صفحة صفحة.
+  5) أو استوردي الملف لفيقما مباشرة ببلقن "html.to.design".
+  6) أي نص بين [أقواس مربعة] = معلومة لازم تتأكدين منها أو تعبينها.
+╚══════════════════════════════════════════════════════════════════╝
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Cairo:wght@600;800&display=swap" rel="stylesheet">
+<style>
+/* ============ COLOR TOKENS (انسخيها كـ Color Styles في فيقما) ============ */
+:root{
+  --bg:#0E0C12;        /* الخلفية */
+  --panel:#17141D;     /* الكروت */
+  --panel-2:#1E1A26;
+  --line:#2C2636;      /* الحدود */
+  --text:#F5F0E8;      /* النص الأساسي */
+  --muted:#A69E95;     /* النص الثانوي */
+  --gold:#F2A93B;      /* لون هويتك (نفس برتقالي البورتفوليو القديم) */
+  --lav:#B9A2FF;       /* لافندر - الكوزمك هب */
+  --acc:var(--gold);   /* يتغير لكل لعبة */
+  --acc-2:var(--lav);
+}
+/* ألوان كل لعبة */
+.t-mirrors{--acc:#F2A93B;--acc-2:#B9A2FF;}
+.t-carpet {--acc:#C084FC;--acc-2:#2DD4BF;}
+.t-vampire{--acc:#FF5A4E;--acc-2:#FFD54A;}
+.t-night  {--acc:#8BC48A;--acc-2:#E2E8F0;}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:#050407}
+body{font-family:'Manrope',system-ui,sans-serif;color:var(--text);
+  display:flex;flex-direction:column;align-items:center;gap:40px;padding:40px 0;}
+b,strong{font-weight:700;color:#fff}
+.ar{font-family:'Cairo',sans-serif;direction:rtl}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* ============ PAGE = FIGMA FRAME 1920×1080 ============ */
+.page{
+  width:1920px;height:1080px;flex:none;position:relative;overflow:hidden;
+  background:
+    radial-gradient(900px 600px at 88% 8%, color-mix(in srgb,var(--acc) 16%,transparent), transparent 70%),
+    radial-gradient(700px 500px at 0% 100%, color-mix(in srgb,var(--acc-2) 10%,transparent), transparent 70%),
+    var(--bg);
+  padding:56px 88px 92px;
+  display:flex;flex-direction:column;
+}
+/* شبكة خفيفة بالخلفية (اختياري في فيقما: Pattern بشفافية 4%) */
+.page::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:48px 48px;}
+.page > *{position:relative}
+
+/* شريط HUD أعلى الصفحة */
+.hud{display:flex;justify-content:space-between;align-items:center;
+  font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--muted);
+  padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:40px;}
+.hud .stage{color:var(--acc)}
+.hud .dots{display:flex;gap:8px}
+.hud .dots i{width:22px;height:6px;border-radius:3px;background:var(--line)}
+.hud .dots i.on{background:var(--acc)}
+
+/* عناوين */
+.kicker{font-family:'JetBrains Mono',monospace;font-size:16px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--acc);margin-bottom:14px}
+h1.title{font-family:'Unbounded',sans-serif;font-weight:800;font-size:76px;
+  line-height:1;letter-spacing:-.01em;text-transform:uppercase}
+h1.title .ar{font-size:44px;color:var(--acc);margin-left:28px;font-weight:800;vertical-align:middle}
+h2{font-family:'Unbounded',sans-serif;font-weight:600;font-size:26px;
+  letter-spacing:.01em;margin-bottom:12px;line-height:1.2}
+h3{font-size:19px;font-weight:800;margin-bottom:8px;color:#fff}
+p{font-size:19px;line-height:1.6;color:var(--muted)}
+p.lead{font-size:23px;line-height:1.55;color:#DDD5CB}
+.sub{font-size:18px;color:var(--muted);margin-top:14px}
+
+/* كروت */
+.card{background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);border-radius:20px;padding:28px 30px;position:relative}
+.card.acc{border-color:color-mix(in srgb,var(--acc) 45%,var(--line))}
+.card .num{position:absolute;top:22px;right:26px;font-family:'JetBrains Mono',monospace;
+  font-size:14px;color:var(--acc);letter-spacing:.15em}
+
+/* صندوق "دوري" */
+.role{border-left:4px solid var(--acc);background:color-mix(in srgb,var(--acc) 8%,transparent);
+  border-radius:0 16px 16px 0;padding:22px 26px}
+.role .lbl{font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.18em;color:var(--acc);text-transform:uppercase}
+.role h3{font-size:22px;margin:6px 0 10px}
+ul.list{list-style:none;display:flex;flex-direction:column;gap:9px}
+ul.list li{font-size:18px;line-height:1.5;color:#D7CFC5;padding-left:26px;position:relative}
+ul.list li::before{content:"";position:absolute;left:2px;top:10px;width:9px;height:9px;
+  transform:rotate(45deg);background:var(--acc)}
+
+/* تاقات وبادجات */
+.tags{display:flex;flex-wrap:wrap;gap:10px}
+.tag{font-family:'JetBrains Mono',monospace;font-size:14px;padding:7px 14px;border-radius:999px;
+  border:1px solid var(--line);color:#E6DED3;background:rgba(255,255,255,.03)}
+.badge{display:inline-flex;align-items:center;gap:12px;padding:10px 18px 10px 12px;border-radius:14px;
+  background:color-mix(in srgb,var(--acc) 14%,transparent);
+  border:1px solid color-mix(in srgb,var(--acc) 55%,transparent);
+  font-weight:800;font-size:17px;color:#fff}
+.badge .ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+  background:var(--acc);color:#120E08;font-size:18px}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 24px;border-radius:12px;
+  background:var(--acc);color:#120E08;font-weight:800;font-size:17px;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+
+/* ============ IMAGE PLACEHOLDER = مكان صورتك ============ */
+.ph{position:relative;border-radius:18px;overflow:hidden;
+  border:2px dashed color-mix(in srgb,var(--acc) 60%,transparent);
+  background:
+    repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 14px,transparent 14px 28px),
+    color-mix(in srgb,var(--acc) 5%,#120F17);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  gap:8px;padding:20px;color:var(--muted)}
+.ph .id{position:absolute;top:14px;left:16px;font-family:'JetBrains Mono',monospace;font-size:13px;
+  letter-spacing:.15em;color:var(--acc);background:rgba(0,0,0,.45);padding:4px 10px;border-radius:6px}
+.ph .sz{position:absolute;bottom:14px;right:16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#7D756C}
+.ph b{font-size:19px;color:#EDE6DC;max-width:90%}
+.ph small{font-family:'Cairo',sans-serif;direction:rtl;font-size:16px;color:var(--muted)}
+.ph.round{border-radius:50%}
+.ph img.fill{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.ph[data-fit="contain"] img.fill{object-fit:contain;background:#0B0A0F}
+.ph[data-fit="avatar"] img.fill{object-fit:contain;object-position:50% 70%;inset:8px;width:calc(100% - 16px);height:calc(100% - 16px)}
+.ph.filled{border:none;padding:0}
+.ph.filled > :not(img){display:none}
+/* زوايا HUD على الصور */
+.frame{position:relative}
+.frame::before,.frame::after{content:"";position:absolute;width:34px;height:34px;border:3px solid var(--acc);z-index:2}
+.frame::before{top:-10px;left:-10px;border-right:none;border-bottom:none}
+.frame::after{bottom:-10px;right:-10px;border-left:none;border-top:none}
+
+/* جداول */
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:17px}
+th{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--acc);text-align:left;padding:12px 16px;border-bottom:1px solid var(--line)}
+td{padding:13px 16px;border-bottom:1px solid var(--line);color:#DDD5CB}
+tr:last-child td{border-bottom:none}
+.pos{color:#4ADE80;font-weight:700}.neg{color:#F87171;font-weight:700}.mid{color:#FACC15;font-weight:700}
+
+/* مخططات (State machines / Flow) */
+.flow{display:flex;align-items:stretch;gap:0}
+.node{flex:1;background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:16px 16px;text-align:center}
+.node b{display:block;font-size:17px;margin-bottom:4px}
+.node span{font-size:14.5px;color:var(--muted);line-height:1.4;display:block}
+.node.hl{border-color:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 15%,transparent)}
+.arrow{display:grid;place-items:center;width:44px;flex:none;color:var(--acc);font-size:22px;font-weight:800}
+.fact{display:grid;grid-template-columns:150px 1fr;gap:6px 18px;font-size:17.5px}
+.fact dt{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding-top:4px}
+.fact dd{color:#EDE6DC;font-weight:600}
+
+.stat{padding:22px 24px}
+.stat .v{font-family:'Unbounded',sans-serif;font-weight:800;font-size:52px;color:var(--acc);line-height:1}
+.stat .k{font-size:16px;color:var(--muted);margin-top:8px}
+
+.footer{position:absolute;left:88px;right:88px;bottom:26px;display:flex;justify-content:space-between;
+  font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.14em;color:#6E665E;text-transform:uppercase}
+
+.grid{display:grid;gap:28px}
+.page > .grid{min-height:0;grid-template-rows:minmax(0,1fr)}
+.ph{min-height:0}
+.t-night td{padding:9px 16px}
+.col{display:flex;flex-direction:column;gap:24px}
+.draft{font-family:'JetBrains Mono',monospace;font-size:12px;color:#FACC15;letter-spacing:.1em}
+
+@media print{
+  @page{size:1920px 1080px;margin:0}
+  html,body{background:none;padding:0;gap:0}
+  .page{page-break-after:always;break-after:page}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<!-- ╔═══════════════════ PAGE 01 — COVER ═══════════════════╗ -->
+<section class="page t-mirrors">
+  <div class="hud"><span>Yara Al-Alawi · Portfolio 2026</span><span class="stage">▶ Press Start</span><span>01 / 14</span></div>
+
+  <div class="grid" style="grid-template-columns:860px 1fr;flex:1;align-items:center">
+    <div class="col" style="gap:30px">
+      <div class="kicker">Player 01 · Game Designer & Gameplay Programmer</div>
+      <h1 class="title" style="font-size:112px;line-height:.95">Yara<br>Al-Alawi</h1>
+      <div class="ar" style="font-size:46px;font-weight:800;color:var(--gold);text-align:left;margin-top:-6px">يارا العلوي</div>
+      <p class="lead" style="max-width:780px">
+        I design and program <b>systemic gameplay</b> — AI state machines, time mechanics and diegetic UI in
+        <b>Unity & C#</b> — and anchor them in <b>Saudi and Arabian cultural stories</b> built for a global audience.
+      </p>
+      <div class="col" style="gap:12px">
+        <span class="badge"><span class="ico">🏆</span>1st Place — Game by CODE (MCIT) · Mirrors of Time</span>
+        <span class="badge"><span class="ico">🥈</span>2nd Place — Qabas Game Jam · Carpet Calamity</span>
+        <span class="badge"><span class="ico">🏅</span>6th Place — SOP Game Jam · Dracula Day Off · Aug 2026</span>
+      </div>
+    </div>
+
+    <!-- IMG 01-A: صورة الغلاف — أنسب شي: رسمتك (الاسكتشات اللي في البورتفوليو القديم) أو بوستر نوار -->
+    <div class="frame">
+      <div class="ph" data-img="01-A" style="height:820px"><span class="id">IMG 01-A</span>
+        <b>Hero visual — key art of Nawar / collage of your hand-drawn design sketches</b>
+        <small>صورة الغلاف: رسمتك أو بوستر "مرايا الزمن" — أقوى صورة عندك</small>
+        <span class="sz">860 × 820</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer"><a href="https://yara-gimu.itch.io/" style="color:inherit;text-decoration:none">yara-gimu.itch.io</a><a href="https://github.com/Yara-Gimu" style="color:inherit;text-decoration:none">github.com/Yara-Gimu</a><a href="https://www.linkedin.com/in/yara-alalawi" style="color:inherit;text-decoration:none">linkedin.com/in/yara-alalawi</a><span>yaraalalawi30@gmail.com</span></div>
+</section>
+
+<!-- ╔═══════════════════ PAGE 02 — PLAYER PROFILE ═══════════════════╗ -->
+<section class="page t-mirrors">
+  <div class="hud"><span>Yara Al-Alawi · Portfolio 2026</span><span class="stage">Player Profile</span><span>02 / 14</span></div>
+
+  <div class="grid" style="grid-template-columns:440px 1fr 560px;flex:1">
+    <!-- عمود 1: الصورة + النبذة -->
+    <div class="col">
+      <!-- IMG 02-A: صورتك الشخصية أو أفاتار مرسوم بأسلوبك -->
+      <div style="position:relative">
+        <div class="frame"><div class="ph" data-img="02-A" style="height:400px"><span class="id">IMG 02-A</span>
+          <b>Portrait photo</b><small>صورتك الشخصية</small><span class="sz">440 × 400</span>
+        </div></div>
+        <!-- IMG 02-B: الأفاتار المرسوم (PNG بدون خلفية) — "أيقونة اللاعب" -->
+        <div style="position:absolute;right:-18px;bottom:-22px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3A2A40,#17141D);border:3px solid var(--gold);overflow:hidden;z-index:3;box-shadow:0 10px 30px rgba(0,0,0,.5)">
+          <div class="ph" data-img="02-B" data-fit="avatar" style="width:100%;height:100%;border:none;border-radius:50%;padding:6px"><small style="font-size:12px">avatar</small></div>
+        </div>
+        <span class="mono" style="position:absolute;right:140px;bottom:-14px;font-size:12px;letter-spacing:.15em;color:var(--gold);background:var(--bg);padding:3px 8px;border-radius:6px;z-index:3">PLAYER ICON</span>
+      </div>
+      <div>
+        <div class="kicker">About</div>
+        <p style="color:#DDD5CB">Computer Science graduate from King Abdulaziz University and co-founder of
+          <b>Fairy Ring Studios</b>. I lead design on team and jam projects, own the core gameplay code,
+          and use playtesting to make every decision measurable.</p>
+      </div>
+    </div>
+
+    <!-- عمود 2: Stats + Skill tree -->
+    <div class="col">
+      <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:18px">
+        <div class="card stat"><div class="v">6</div><div class="k">Games & prototypes built</div></div>
+        <div class="card stat"><div class="v">3</div><div class="k">Awards in 2026</div></div>
+        <div class="card stat"><div class="v">4.32</div><div class="k">GPA / 5.0 · B.Sc. CS, 2026</div></div>
+      </div>
+
+      <div class="card" style="flex:1">
+        <div class="kicker" style="margin-bottom:20px">Skill Tree</div>
+        <h3>Game Design</h3>
+        <div class="tags" style="margin-bottom:22px">
+          <span class="tag">Systems Design</span><span class="tag">Level Design</span><span class="tag">Balancing</span>
+          <span class="tag">Narrative Design</span><span class="tag">Game Feel</span><span class="tag">Playtesting</span><span class="tag">GDD Writing</span>
+        </div>
+        <h3>Programming</h3>
+        <div class="tags" style="margin-bottom:22px">
+          <span class="tag">Unity</span><span class="tag">C#</span><span class="tag">Game Programming Patterns</span><span class="tag">AI State Machines</span>
+          <span class="tag">VR Interaction</span><span class="tag">Custom Physics</span><span class="tag">Camera & VFX</span>
+        </div>
+        <h3>Production & Tools</h3>
+        <div class="tags">
+          <span class="tag">Team Lead</span><span class="tag">Figma</span><span class="tag">Git / GitHub</span>
+          <span class="tag">itch.io Publishing</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- عمود 3: Level Select (فهرس) -->
+    <div class="card acc" style="display:flex;flex-direction:column">
+      <div class="kicker">Level Select</div>
+      <h2 style="margin-bottom:22px">Selected Works</h2>
+      <div class="col" style="gap:14px;flex:1">
+        <div class="node hl" style="text-align:left;display:flex;justify-content:space-between;align-items:center"><div><b>Mirrors of Time</b><span>3D Puzzle Platformer · 1st Place Game by CODE</span></div><span class="mono" style="color:var(--acc);font-size:16px">P.03</span></div>
+        <div class="node" style="text-align:left;display:flex;justify-content:space-between;align-items:center"><div><b>Carpet Calamity</b><span>3D Inverse Racing · 2nd Place Jam</span></div><span class="mono" style="color:var(--acc);font-size:16px">P.09</span></div>
+        <div class="node" style="text-align:left;display:flex;justify-content:space-between;align-items:center"><div><b>Dracula Day Off</b><span>2D Stealth-Action · 6th Place Jam</span></div><span class="mono" style="color:var(--acc);font-size:16px">P.11</span></div>
+        <div class="node" style="text-align:left;display:flex;justify-content:space-between;align-items:center"><div><b>Night of the Last Refuge</b><span>FPS Survival Horror · Bootcamp</span></div><span class="mono" style="color:var(--acc);font-size:16px">P.12</span></div>
+        <div class="node" style="text-align:left;display:flex;justify-content:space-between;align-items:center"><div><b>Unity Toolkit & More Titles</b><span>Tech spotlight · Other games · Contact</span></div><span class="mono" style="color:var(--acc);font-size:16px">P.13</span></div>
+      </div>
+      <p style="font-size:16px;margin-top:18px;font-style:italic">"The best games are elegant systems that respect the player's intelligence."</p>
+    </div>
+  </div>
+  <div class="footer"><span>Design Philosophy: systems × culture</span><span>Riyadh / Jeddah · KSA</span></div>
+</section>
+
+<!-- ╔═══════════════════ PAGE 03 — MIRRORS OF TIME · OVERVIEW ═══════════════════╗ -->
+<section class="page t-mirrors">
+  <div class="hud"><span>Stage 01 · Flagship Project</span><span class="hud dots" style="border:none;padding:0;margin:0"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></span><span>03 / 14</span></div>
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:34px">
+    <div>
+      <div class="kicker">3D Puzzle Platformer · Cultural Adventure · PC (in development)</div>
+      <h1 class="title">Mirrors of Time<span class="ar">مرايا الزمن</span></h1>
+    </div>
+    <span class="badge"><span class="ico">🏆</span>1st Place — Game by CODE (MCIT)</span>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1060px 1fr;flex:1">
+    <div class="col" style="gap:20px">
+      <!-- IMG 03-A: البوستر/الكي آرت (نوار بين الزهور اللي في البورتفوليو القديم ممتاز هنا) -->
+      <div class="frame"><div class="ph" data-img="03-A" style="height:450px"><span class="id">IMG 03-A</span>
+        <b>Key art — Nawar the Arabian fox in AlUla</b>
+        <small>البوستر الرئيسي للعبة (صورة نوار بالزهور)</small>
+        <span class="sz">1060 × 450</span>
+      </div></div>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:20px">
+        <div class="ph" data-img="03-B" style="height:210px"><span class="id">IMG 03-B</span><b>The Cosmic Hub</b><small>الهب بحقل الخزامى والبوابات</small><span class="sz">340 × 210</span></div>
+        <div class="ph" data-img="03-C" style="height:210px"><span class="id">IMG 03-C</span><b>AlUla level screenshot</b><small>لقطة من مرحلة العلا</small><span class="sz">340 × 210</span></div>
+        <div class="ph" data-img="03-D" style="height:210px"><span class="id">IMG 03-D</span><b>v1 VR prototype — Thamudic puzzle (AlUla)</b><small>لقطة من نسخة الـ VR الأولى</small><span class="sz">340 × 210</span></div>
+      </div>
+    </div>
+
+    <div class="col" style="gap:22px">
+      <p class="lead">After shattering an ancient mirror, archaeologist <b>Nawar</b> bends time —
+        <b>Freeze, Rewind, Fast-Forward</b> — to solve cultural puzzles across AlUla, Thaj, Al-Faw and Tarout,
+        guided by the light spirit <b>Wahej</b>.</p>
+
+      <dl class="fact">
+        <dt>Engine</dt><dd>Unity · C#</dd>
+        <dt>v2 · 3D PC</dt><dd>Full game, 5 regions · in development · 1st Place</dd>
+        <dt>v1 · VR</dt><dd>Original prototype, AlUla only · playable on itch.io</dd>
+        <dt>Team</dt><dd>v2: Yara & Aljawharah · v1: team of 6</dd>
+      </dl>
+
+      <div class="role">
+        <div class="lbl">My Role</div>
+        <h3>Lead Game Designer & Gameplay / VR Programmer</h3>
+        <ul class="list">
+          <li>Programmed the time-manipulation mechanics with a 10-second cooldown.</li>
+          <li>Designed the Hub & Spoke world and the diegetic UI guided by Wahej.</li>
+          <li>Built contextual player states (Agility · Stealth · Panic) and VR hands-on puzzles.</li>
+          <li>Ran playtests with 5+ users to tune pacing and onboarding.</li>
+          <li>Led the jump from the VR prototype to the full 3D PC game.</li>
+        </ul>
+      </div>
+      <div style="display:flex;gap:14px;margin-top:auto">
+        <a class="btn" href="https://yara-gimu.itch.io/mirror-of-time-vr-prototype-edition">▶ Play v1 VR Prototype</a>
+        <a class="btn ghost" href="https://youtu.be/dUBPhcU9S68">▶ Watch Gameplay (early build)</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>v2 art, 3D & programming: Aljawharah Bahashwan · v1 VR team: Wesal, Wujood, Noura, Shahad</span><span>Mirrors of Time · Overview</span></div>
+</section>
+
+<!-- ╔═══════════════════ PAGE 04 — MIRRORS · SYSTEMS ═══════════════════╗ -->
+<section class="page t-mirrors">
+  <div class="hud"><span>Stage 01 · Systems Breakdown</span><span class="stage">Mirrors of Time</span><span>04 / 14</span></div>
+  <div class="kicker">How it works</div>
+  <h1 class="title" style="font-size:58px;margin-bottom:34px">Bending Time, Not Swords</h1>
+
+  <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:28px">
+    <div class="card acc"><span class="num">SYS 01</span>
+      <h2>Time Manipulation</h2>
+      <p style="font-size:17.5px;margin-bottom:16px">Freeze turns falling rocks into temporary platforms — the player shifts from <b>avoiding</b> danger to <b>using</b> it.</p>
+      <div class="flow" style="flex-direction:column;gap:8px">
+        <div class="node"><b>Input: Freeze</b></div>
+        <div class="arrow" style="width:auto;height:18px">↓</div>
+        <div class="node hl"><b>Cooldown ready?</b><span>No → blocked + UI cue</span></div>
+        <div class="arrow" style="width:auto;height:18px">↓ yes</div>
+        <div class="node"><b>Freeze tagged objects → start 10s cooldown</b></div>
+      </div>
+    </div>
+
+    <div class="card acc"><span class="num">SYS 02</span>
+      <h2>Contextual Player States</h2>
+      <p style="font-size:17.5px;margin-bottom:16px">No combat. Nawar's movement adapts to threat level, creating vulnerability and tension.</p>
+      <div class="col" style="gap:10px">
+        <div class="node"><b style="color:#4ADE80">Agility</b><span>Run · jump · coyote time</span></div>
+        <div class="arrow" style="width:auto;height:16px">⇅ enemy nearby</div>
+        <div class="node hl"><b style="color:#FACC15">Stealth</b><span>Crouch · crawl · sound matters</span></div>
+        <div class="arrow" style="width:auto;height:16px">⇅ spotted</div>
+        <div class="node"><b style="color:#F87171">Panic / Chase</b><span>Sprint · camera pans to side-view</span></div>
+      </div>
+    </div>
+
+    <div class="card acc" style="display:flex;flex-direction:column"><span class="num">SYS 03</span>
+      <h2>Diegetic UI — Wahej</h2>
+      <p style="font-size:17.5px;margin-bottom:16px">No mini-map, no health bar. The spirit Wahej lights the path; <b>Insight</b> reveals hidden routes through environment shaders.</p>
+      <!-- IMG 04-A: GIF/صورة لوهج وهو ينور طريق مخفي -->
+      <div class="col" style="gap:6px;flex:1">
+        <div class="node"><b>Press Insight</b></div>
+        <div class="arrow" style="width:auto;height:14px;font-size:15px">↓</div>
+        <div class="node hl"><b>Wahej flares up</b><span>Raises InsightUsed event</span></div>
+        <div class="arrow" style="width:auto;height:14px;font-size:15px">↓</div>
+        <div class="node"><b style="color:#7DD3FC">IRevealable objects glow</b><span>Footprints & symbols turn neon blue</span></div>
+        <p class="mono" style="font-size:12px;color:#6E665E;margin-top:4px">WAHEJ CHARACTER ART — IN PRODUCTION</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hub & Spoke strip مع ألوان كل مرحلة -->
+  <div class="card" style="padding:24px 28px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 style="margin:0">Hub & Spoke Progression</h2>
+      <span class="mono" style="color:var(--muted);font-size:14px">EACH REGION TEACHES ONE NEW MECHANIC</span>
+    </div>
+    <div class="flow">
+      <div class="node" style="border-top:5px solid #C9B8F5"><b>Cosmic Hub</b><span>Lavender · safe haven</span></div><div class="arrow">→</div>
+      <div class="node" style="border-top:5px solid #C2523C"><b>AlUla</b><span>Rock Red · Rewind / Freeze</span></div><div class="arrow">→</div>
+      <div class="node" style="border-top:5px solid #B8893A"><b>Thaj</b><span>Bronze Gold · Stealth & Chase</span></div><div class="arrow">→</div>
+      <div class="node" style="border-top:5px solid #7D8B3A"><b>Al-Faw</b><span>Olive · Fast-Forward</span></div><div class="arrow">→</div>
+      <div class="node" style="border-top:5px solid #2D4A7A"><b>Tarout</b><span>Navy · Insight & Djinn</span></div><div class="arrow">→</div>
+      <div class="node" style="border-top:5px solid #EDE6DC"><b>Final Desert</b><span>Surreal · mechanics stripped</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ╔═══════════════════ MIRRORS · CODE ARCHITECTURE (Game Programming Patterns) ═══════════════════╗ -->
+<!-- هذي الصفحة تبيّن إنك مبرمجة تفكر بالهيكلة — مأخوذة من ملفاتك عن كتاب Game Programming Patterns -->
+<section class="page t-mirrors">
+  <div class="hud"><span>Stage 01 · Code Architecture</span><span class="stage">Mirrors of Time</span><span>05 / 14</span></div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:30px">
+    <div>
+      <div class="kicker">Built on Robert Nystrom's "Game Programming Patterns"</div>
+      <h1 class="title" style="font-size:58px">One Pattern per Problem</h1>
+    </div>
+    <p style="max-width:560px;font-size:18px;text-align:right">Each system in the game is matched to a pattern, so new regions, languages and platforms can be added <b>without rewriting core code</b>.</p>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 600px;flex:1">
+    <div class="grid" style="grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:20px">
+      <div class="card" style="padding:22px 24px"><span class="num" style="position:static;display:block;margin-bottom:10px">COMMAND</span><h3>Input & Local Rewind</h3><p style="font-size:16px">Buttons create commands (Jump, Move), not direct calls. Stored commands run in reverse to <b>restore</b> broken bridges and pottery.</p></div>
+      <div class="card" style="padding:22px 24px"><span class="num" style="position:static;display:block;margin-bottom:10px">STATE</span><h3>Nawar's Movement</h3><p style="font-size:16px">Idle · Run · Jump · Crawl as separate states. <b>Coyote time</b> lives in a short Falling state with its own timer.</p></div>
+      <div class="card" style="padding:22px 24px"><span class="num" style="position:static;display:block;margin-bottom:10px">STATE</span><h3>Wahej & Game Flow</h3><p style="font-size:16px">WahejWeak → WahejHappy as the story moves on. MainMenu → Loading → Gameplay with no black loading screen.</p></div>
+      <div class="card" style="padding:22px 24px"><span class="num" style="position:static;display:block;margin-bottom:10px">OBSERVER</span><h3>Quests, Tutorial & UI</h3><p style="font-size:16px">A stone sends one "StoneCollected" event; the UI, frame glow, audio and Wahej all react to it. No spaghetti code.</p></div>
+      <div class="card" style="padding:22px 24px"><span class="num" style="position:static;display:block;margin-bottom:10px">OBSERVER</span><h3>Dynamic NavMesh</h3><p style="font-size:16px">When a restored bridge appears, it raises <b>EnvironmentChanged</b>; only the nearby NavMesh is re-baked so guards can follow.</p></div>
+      <div class="card" style="padding:22px 24px"><span class="num" style="position:static;display:block;margin-bottom:10px">COMPONENT + TYPE OBJECT</span><h3>TimeAffectable</h3><p style="font-size:16px">One component on any object. A ScriptableObject defines its reaction: a rock <b>freezes</b>, a flower <b>grows</b>.</p></div>
+      <div class="card" style="padding:22px 24px"><span class="num" style="position:static;display:block;margin-bottom:10px">DATA-DRIVEN</span><h3>Dialogue & Localization</h3><p style="font-size:16px">No strings in C#. Dialogue, Thamudic translations and archive text live in data files — new language = new file.</p></div>
+      <div class="card" style="padding:22px 24px"><span class="num" style="position:static;display:block;margin-bottom:10px">MEMENTO</span><h3>Archive & Saving</h3><p style="font-size:16px">Each collected artifact takes a snapshot of progress, so "Continue Journey" restores exactly what was found.</p></div>
+      <div class="card" style="padding:22px 24px"><span class="num" style="position:static;display:block;margin-bottom:10px">EVENT QUEUE</span><h3>Cutscenes & Audio</h3><p style="font-size:16px">PauseGameplay is queued before a cutscene (Unity Timeline); the AudioManager is reached through a <b>Service Locator</b>.</p></div>
+    </div>
+
+    <div class="col" style="gap:20px">
+      <!-- استبدلي هذا بسكربتك الحقيقي لو موجود — أو خليه "Pattern sketch" -->
+      <div class="card" style="flex:1;background:#0B0A0F;font-family:'JetBrains Mono',monospace;font-size:13.5px;line-height:1.65;color:#CFC7BD;white-space:pre;padding:24px 24px">
+<span style="color:#6E665E">// Pattern sketch — Observer + Component
+// [replace with your real script]</span>
+<span style="color:#F2A93B">public class</span> TimeAffectable : MonoBehaviour {
+  [SerializeField] TimeReaction reaction; <span style="color:#6E665E">// ScriptableObject</span>
+
+  <span style="color:#F2A93B">void</span> OnEnable()  =&gt; MirrorEvents.OnTimePower += Apply;
+  <span style="color:#F2A93B">void</span> OnDisable() =&gt; MirrorEvents.OnTimePower -= Apply;
+
+  <span style="color:#F2A93B">void</span> Apply(TimePower power) {
+    reaction.Execute(<span style="color:#F2A93B">this</span>, power); <span style="color:#6E665E">// freeze/rewind/FF</span>
+    <span style="color:#F2A93B">if</span> (reaction.ChangesPath)
+      WorldEvents.Raise(<span style="color:#B9A2FF">EnvironmentChanged</span>);
+      <span style="color:#6E665E">// NavMesh re-bakes nearby area</span>
+  }
+}</div>
+      <div class="card" style="padding:20px 22px">
+        <div class="kicker" style="margin-bottom:12px;font-size:13px">System Map</div>
+        <div style="display:flex;justify-content:center"><div class="node hl" style="flex:none;width:300px;padding:10px"><b style="font-size:15px">GameManager</b><span style="font-size:12.5px">Service Locator</span></div></div>
+        <div class="arrow" style="width:auto;height:16px;font-size:14px">↓ provides</div>
+        <div class="flow" style="gap:8px">
+          <div class="node" style="padding:9px 6px"><b style="font-size:13.5px">Scene</b><span style="font-size:11.5px">State</span></div>
+          <div class="node" style="padding:9px 6px"><b style="font-size:13.5px">Save</b><span style="font-size:11.5px">Memento</span></div>
+          <div class="node" style="padding:9px 6px"><b style="font-size:13.5px">Audio</b><span style="font-size:11.5px">Event Queue</span></div>
+          <div class="node" style="padding:9px 6px"><b style="font-size:13.5px">Input</b><span style="font-size:11.5px">Command</span></div>
+        </div>
+        <div class="arrow" style="width:auto;height:16px;font-size:14px">↓ commands</div>
+        <div class="flow" style="gap:8px;align-items:center">
+          <div class="node" style="padding:9px 6px;flex:.8"><b style="font-size:13.5px">Nawar</b><span style="font-size:11.5px">State machine</span></div>
+          <div class="arrow" style="width:26px;font-size:15px">→</div>
+          <div class="node hl" style="padding:9px 6px;flex:1"><b style="font-size:13.5px;color:var(--lav)">MirrorEvents</b><span style="font-size:11.5px">Observer bus</span></div>
+          <div class="arrow" style="width:26px;font-size:15px">→</div>
+          <div class="node" style="padding:9px 6px;flex:1.4;text-align:left"><span style="font-size:12px;line-height:1.5;color:#DDD5CB">TimeAffectable · Wahej<br>UI · NavMesh · Tutorial</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ╔═══════════════════ MIRRORS · PUZZLES REGION BY REGION ═══════════════════╗ -->
+<!-- من ملفاتك: كل منطقة وألغازها والنمط البرمجي لكل لغز -->
+<section class="page t-mirrors">
+  <div class="hud"><span>Stage 01 · Puzzle & Encounter Design</span><span class="stage">Mirrors of Time</span><span>06 / 14</span></div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px">
+    <div>
+      <div class="kicker">Every puzzle designed — and mapped to a pattern</div>
+      <h1 class="title" style="font-size:58px">Region by Region</h1>
+    </div>
+    <p style="max-width:560px;font-size:18px;text-align:right">Each region adds one new idea, so the player's toolset — and the code — grows step by step. <b>Puzzles designed; levels in production.</b></p>
+  </div>
+
+  <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:22px;flex:1">
+    <!-- THAJ -->
+    <div class="card" style="border-top:5px solid #B8893A;display:flex;flex-direction:column;gap:14px;padding:22px 22px">
+      <div class="ph" data-img="06-A" style="height:250px"><span class="id">IMG 06-A</span><b>Portal to Thaj</b><small>صورة بوابة ثاج من الديوان الكوني</small><span class="sz">420 × 250</span></div>
+      <div><div class="mono" style="font-size:13px;color:#B8893A;letter-spacing:.15em">LEVEL 2 · THAJ</div><h3 style="font-size:21px;margin:4px 0 0">Curse of the Golden Mask</h3></div>
+      <div class="col" style="gap:12px">
+        <div><b style="font-size:17px">Blind Guardians</b><p style="font-size:15.5px;line-height:1.45">Stepping on glass fires <b>OnNoiseMade</b>; guards wake: Idle → Chase → Frozen.</p><span class="tag" style="font-size:12px;padding:3px 9px">Observer + State</span></div>
+        <div><b style="font-size:17px">Rotating Rings Gate</b><p style="font-size:15.5px;line-height:1.45">Freeze crown, eyes, mouth in order; the gate checks all angles.</p><span class="tag" style="font-size:12px;padding:3px 9px">Update Method + Observer</span></div>
+        <div><b style="font-size:17px">Statues Under Pressure</b><p style="font-size:15.5px;line-height:1.45">Freeze the Princess for 3s, rotate 4 statues 90° while still running.</p><span class="tag" style="font-size:12px;padding:3px 9px">Command</span></div>
+        <div><b style="font-size:17px">The Real Key</b><p style="font-size:15.5px;line-height:1.45">Gold necklace is fake; the plain shell necklace ends the curse.</p><span class="tag" style="font-size:12px;padding:3px 9px">Type Object</span></div>
+      </div>
+    </div>
+
+    <!-- AL-FAW -->
+    <div class="card" style="border-top:5px solid #7D8B3A;display:flex;flex-direction:column;gap:14px;padding:22px 22px">
+      <div class="ph" data-img="06-B" style="height:250px"><span class="id">IMG 06-B</span><b>Portal to Al-Faw</b><small>صورة بوابة الفاو من الديوان الكوني</small><span class="sz">420 × 250</span></div>
+      <div><div class="mono" style="font-size:13px;color:#9DAE4A;letter-spacing:.15em">LEVEL 3 · AL-FAW</div><h3 style="font-size:21px;margin:4px 0 0">The Missing Melody</h3></div>
+      <div class="col" style="gap:12px">
+        <div><b style="font-size:17px">Bronze Lions</b><p style="font-size:15.5px;line-height:1.45">Restore 4 lions; when the 4th is Restored, the manager releases water & sunlight.</p><span class="tag" style="font-size:12px;padding:3px 9px">State + Observer</span></div>
+        <div><b style="font-size:17px">Temple Incense</b><p style="font-size:15.5px;line-height:1.45">Fast-forward: Ignited → Overheated → Cooled. Smoke is pre-loaded to keep FPS.</p><span class="tag" style="font-size:12px;padding:3px 9px">State + Object Pool</span></div>
+        <div><b style="font-size:17px">Towers & Perfume</b><p style="font-size:15.5px;line-height:1.45">Seals go into the right towers; one item-type check runs both puzzles.</p><span class="tag" style="font-size:12px;padding:3px 9px">Type Object</span></div>
+        <div><b style="font-size:17px">Audio Ghosts</b><p style="font-size:15.5px;line-height:1.45">Invisible 3D sound sources make an empty market feel alive.</p><span class="tag" style="font-size:12px;padding:3px 9px">Spatial Audio</span></div>
+      </div>
+    </div>
+
+    <!-- TAROUT -->
+    <div class="card" style="border-top:5px solid #3B67A8;display:flex;flex-direction:column;gap:14px;padding:22px 22px">
+      <div class="ph" data-img="06-C" style="height:250px"><span class="id">IMG 06-C</span><b>Portal to Tarout</b><small>صورة بوابة تاروت من الديوان الكوني</small><span class="sz">420 × 250</span></div>
+      <div><div class="mono" style="font-size:13px;color:#5B8BD6;letter-spacing:.15em">LEVEL 4 · TAROUT</div><h3 style="font-size:21px;margin:4px 0 0">Pearl of Ashtarout</h3></div>
+      <div class="col" style="gap:12px">
+        <div><b style="font-size:17px">Insight Reveal</b><p style="font-size:15.5px;line-height:1.45">Only objects with <b>IRevealable</b> glow neon blue: footprints, hidden symbols.</p><span class="tag" style="font-size:12px;padding:3px 9px">Observer + Component</span></div>
+        <div><b style="font-size:17px">Djinn Push</b><p style="font-size:15.5px;line-height:1.45">A push = −50% speed for 5s, red screen; 3 pushes and Nawar faints.</p><span class="tag" style="font-size:12px;padding:3px 9px">State</span></div>
+        <div><b style="font-size:17px">Skeleton Grip QTE</b><p style="font-size:15.5px;line-height:1.45">Mash Space for 3s; the meter fills per press and drains over time.</p><span class="tag" style="font-size:12px;padding:3px 9px">Update Method</span></div>
+        <div><b style="font-size:17px">Mangrove Roots</b><p style="font-size:15.5px;line-height:1.45">Rewind brings dead roots to life and reveals a statue.</p><span class="tag" style="font-size:12px;padding:3px 9px">Event Queue · Timeline</span></div>
+      </div>
+    </div>
+
+    <!-- FINALE -->
+    <div class="card" style="border-top:5px solid #EDE6DC;display:flex;flex-direction:column;gap:14px;padding:22px 22px">
+      <div class="ph" data-img="06-D" style="height:250px"><span class="id">IMG 06-D</span><b>Portal to Final Desert</b><small>صورة بوابة المرحلة الأخيرة من الديوان الكوني</small><span class="sz">420 × 250</span></div>
+      <div><div class="mono" style="font-size:13px;color:#EDE6DC;letter-spacing:.15em">LEVEL 5 · FINALE</div><h3 style="font-size:21px;margin:4px 0 0">The Final Desert</h3></div>
+      <div class="col" style="gap:12px">
+        <div><b style="font-size:17px">Powerless Nawar</b><p style="font-size:15.5px;line-height:1.45">Powers turn grey and play an error sound; only jumping is left.</p><span class="tag" style="font-size:12px;padding:3px 9px">State / Strategy</span></div>
+        <div><b style="font-size:17px">Hourglass Melody</b><p style="font-size:15.5px;line-height:1.45">Jump glowing tiles in note order (1-3-2-4-5) before rising sand covers them.</p><span class="tag" style="font-size:12px;padding:3px 9px">Observer + Update</span></div>
+        <div><b style="font-size:17px">Emotional Climax</b><p style="font-size:15.5px;line-height:1.45">The mirror becomes a clock; hand-drawn sketches of every region, then a final tick.</p><span class="tag" style="font-size:12px;padding:3px 9px">Event Queue · Timeline</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ╔═══════════════════ MIRRORS · PLAYTEST EVIDENCE ═══════════════════╗ -->
+<!-- الأرقام من عرض حاضنة الذكاء الاصطناعي (أكتوبر 2026) -->
+<section class="page t-mirrors">
+  <div class="hud"><span>Stage 01 · Player Evidence</span><span class="stage">Mirrors of Time</span><span>07 / 14</span></div>
+  <div class="kicker">Design Process · 35 players across 2 surveys</div>
+  <h1 class="title" style="font-size:58px;margin-bottom:32px">Tested, Then Built</h1>
+
+  <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:22px;margin-bottom:26px">
+    <div class="card stat"><div class="v">100%</div><div class="k">learned something new about Thamudic culture</div></div>
+    <div class="card stat"><div class="v">95.7%</div><div class="k">said it preserves heritage & shows us positively</div></div>
+    <div class="card stat"><div class="v">87%</div><div class="k">excited to play again</div></div>
+    <div class="card stat"><div class="v">4.52</div><div class="k">/ 5 · in-game guidance rating</div></div>
+  </div>
+  <p class="mono" style="font-size:13px;color:#6E665E;margin:-12px 0 24px">SOURCE: PLAYER SURVEY, v1 VR PROTOTYPE (23 PLAYERS)</p>
+
+  <div class="grid" style="grid-template-columns:560px 1fr 520px;flex:1">
+    <div class="card">
+      <h3 style="margin-bottom:18px">v2 PC Test · 12 players · score / 5</h3>
+      <div class="col" style="gap:18px">
+        <div><div style="display:flex;justify-content:space-between;font-size:17px"><span>Cave & portal atmosphere</span><b>4.92</b></div><div style="height:10px;border-radius:5px;background:var(--line);margin-top:8px"><div style="width:98.4%;height:100%;border-radius:5px;background:var(--acc)"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:17px"><span>Understanding controls</span><b>4.58</b></div><div style="height:10px;border-radius:5px;background:var(--line);margin-top:8px"><div style="width:91.6%;height:100%;border-radius:5px;background:var(--acc)"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:17px"><span>Clarity of objectives</span><b>4.08</b></div><div style="height:10px;border-radius:5px;background:var(--line);margin-top:8px"><div style="width:81.6%;height:100%;border-radius:5px;background:var(--acc-2)"></div></div></div>
+      </div>
+      <p style="font-size:16px;margin-top:20px">Lowest score = objectives → this is why Wahej is becoming an <b>adaptive guide</b> that reduces early confusion <b>without</b> giving away puzzle answers.</p>
+    </div>
+
+    <div class="card">
+      <h3>Playtest → Change</h3>
+      <table>
+        <tr><th>What we saw</th><th>What I changed</th></tr>
+        <tr><td>Players spammed Freeze</td><td>Strict <b>10s cooldown</b></td></tr>
+        <tr><td>v1 covered AlUla only</td><td>Full <b>5-region 3D PC game</b></td></tr>
+        <tr><td>Opening felt slow</td><td>Re-paced onboarding</td></tr>
+        <tr><td>Combat broke vulnerability</td><td><b>Stealth & evasion</b> instead</td></tr>
+        <tr><td>Objectives unclear (4.08)</td><td>Adaptive Wahej guide <span style="color:var(--muted)">(in dev)</span></td></tr>
+      </table>
+      <p style="font-size:15.5px;margin-top:14px">Testers compared the controls to global titles like Tomb Raider.</p>
+    </div>
+
+    <div class="col" style="gap:20px">
+      <!-- IMG 07-A: صورة من جلسة الاختبار أو أحد يلعب بنظارة VR -->
+      <div class="ph" data-img="07-A" style="flex:1;position:relative"><span class="id">IMG 07-A</span><b>v1 VR playtest session</b><small>صورتك وأنتِ تجربين نسخة VR</small><span class="sz">520 × 300</span></div>
+      <div class="card" style="padding:22px 24px">
+        <h3 style="margin-bottom:14px">Development Progress</h3>
+        <div class="flow" style="gap:6px">
+          <div class="node" style="padding:10px 6px;border-top:4px solid #4ADE80"><b style="font-size:14px">Opening</b><span style="font-size:12px">Done</span></div>
+          <div class="node" style="padding:10px 6px;border-top:4px solid #4ADE80"><b style="font-size:14px">Hub</b><span style="font-size:12px">Done</span></div>
+          <div class="node hl" style="padding:10px 6px;border-top:4px solid #FACC15"><b style="font-size:14px">AlUla</b><span style="font-size:12px">In progress</span></div>
+          <div class="node" style="padding:10px 6px"><b style="font-size:14px">Thaj</b><span style="font-size:12px">Next</span></div>
+          <div class="node" style="padding:10px 6px"><b style="font-size:14px">+3</b><span style="font-size:12px">Planned</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ╔═══════════════════ MIRRORS · BUSINESS PLAN ═══════════════════╗ -->
+<!-- مأخوذة من عرض الحاضنة — نفس الأرقام اللي بتقولينها في الفيديو (سؤال 04) -->
+<section class="page t-mirrors">
+  <div class="hud"><span>Stage 01 · From Prototype to Product</span><span class="stage">Mirrors of Time · Business</span><span>08 / 14</span></div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:30px">
+    <div>
+      <div class="kicker">Vision & Market</div>
+      <h1 class="title" style="font-size:54px">Saudi Heritage, Built to Travel</h1>
+    </div>
+    <span class="badge"><span class="ico">🎬</span>Jury recommendation: adapt into an animated film</span>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr 1fr;flex:1">
+    <div class="col" style="gap:20px">
+      <div class="card"><span class="num">PROBLEM</span><h3>History taught the boring way</h3>
+        <p style="font-size:16.5px">Young Saudis and global players barely know the Kingdom's ancient civilizations, and the usual ways of teaching them are dry.</p></div>
+      <div class="card acc"><span class="num">SOLUTION</span><h3>Learn by playing</h3>
+        <p style="font-size:16.5px">A 3D adventure where every puzzle is built on real Saudi heritage — <b>AlUla, Thaj, Al-Faw, Tarout</b> — at global quality.</p></div>
+      <div class="card" style="flex:1"><span class="num">TARGET</span><h3>First customers</h3>
+        <p style="font-size:16.5px">Saudi young adults, reached through universities, events and Steam, then Arab and global adventure fans.</p></div>
+    </div>
+
+    <div class="col" style="gap:20px">
+      <div class="card">
+        <h3 style="margin-bottom:14px">Market</h3>
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:16px">
+          <div><div class="v" style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:36px;color:var(--acc)">25.8M</div><div style="font-size:14.5px;color:var(--muted)">players in Saudi Arabia</div></div>
+          <div><div style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:36px;color:var(--acc)">SAR 4.5B</div><div style="font-size:14.5px;color:var(--muted)">Saudi games market</div></div>
+          <div><div style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:36px;color:var(--acc-2)">SAR 21B</div><div style="font-size:14.5px;color:var(--muted)">Middle East & Africa</div></div>
+          <div><div style="font-family:'Unbounded',sans-serif;font-weight:800;font-size:36px;color:var(--acc-2)">0.1%</div><div style="font-size:14.5px;color:var(--muted)">Saudi share target · 2028</div></div>
+        </div>
+        <p class="mono" style="font-size:11.5px;color:#6E665E;margin-top:14px">SOURCES: SAVVY GAMES REPORT 2025 · PIF · UNESCO</p>
+      </div>
+      <div class="card">
+        <h3>Revenue Model</h3>
+        <ul class="list">
+          <li><b>Premium sales</b> on Steam, PlayStation & Xbox (price TBD)</li>
+          <li><b>Partnerships</b> with heritage, tourism & education bodies</li>
+          <li><b>IP extension</b> — animated film, as the jury recommended</li>
+        </ul>
+      </div>
+      <div class="card" style="flex:1">
+        <h3>Hard to Copy</h3>
+        <p style="font-size:16px">Authentic Saudi identity (Hegra on UNESCO since 2008, Al-Faw since 2024) + time-based puzzles + an adaptive AI guide no heritage competitor offers.</p>
+      </div>
+    </div>
+
+    <div class="col" style="gap:20px">
+      <div class="card acc">
+        <h3 style="margin-bottom:12px">Next 12 Months</h3>
+        <ul class="list">
+          <li>Launch <b>AlUla in Steam Early Access</b></li>
+          <li>Complete the Thaj & Al-Faw regions</li>
+          <li>Test with <b>100 players</b>; improve camera & guidance</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="num">RISK</span><h3>4 regions left, small team</h3>
+        <p style="font-size:16px">Ship AlUla first, then build the rest from player feedback.</p>
+      </div>
+      <div class="card" style="flex:1">
+        <h3 style="margin-bottom:12px">Team & Open Roles</h3>
+        <p style="font-size:16px;margin-bottom:12px"><b>Yara Al-Alawi</b> & <b>Aljawharah Bahashwan</b> — co-founders & developers</p>
+        <div class="tags"><span class="tag">3D Environment Artist</span><span class="tag">Audio Engineer</span><span class="tag">Business & Publishing Lead</span></div>
+        <p style="font-size:15px;margin-top:12px">Revenue so far: SAR 0 — prototype stage.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ╔═══════════════════ PAGE 06 — CARPET CALAMITY · OVERVIEW ═══════════════════╗ -->
+<section class="page t-carpet">
+  <div class="hud"><span>Stage 02 · Game Jam Winner</span><span class="stage">Carpet Calamity</span><span>09 / 14</span></div>
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:34px">
+    <div>
+      <div class="kicker">3D Inverse Racing · Qabas Game Jam · 1-week build</div>
+      <h1 class="title">Carpet Calamity</h1>
+    </div>
+    <span class="badge"><span class="ico">🥈</span>2nd Place — Qabas Game Jam</span>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1060px;flex:1">
+    <div class="col" style="gap:22px">
+      <p class="lead">A <b>1001 Nights</b> flying-carpet race where first place is a trap.
+        Djinns race to the Ruler's palace — and the first three arrivals get punished. <b>Finish last to win.</b></p>
+
+      <dl class="fact">
+        <dt>Jam theme</dt><dd>Role Reversal · 1001 Nights</dd>
+        <dt>Engine</dt><dd>Unity · C#</dd>
+        <dt>Team</dt><dd>3 — design/code, art/3D, UI</dd>
+        <dt>Controls</dt><dd>Mouse X-axis steering</dd>
+      </dl>
+
+      <div class="role">
+        <div class="lbl">My Role</div>
+        <h3>Team Lead, Game Designer & Core Programmer</h3>
+        <ul class="list">
+          <li>Designed the inverse win condition and the curse system.</li>
+          <li>Programmed the rubberbanding AI and custom flight physics.</li>
+          <li>Tuned camera FOV, screen shake and banking for game feel.</li>
+        </ul>
+      </div>
+
+      <div class="card acc">
+        <div class="kicker" style="margin-bottom:8px">Problem Solved</div>
+        <p style="font-size:17.5px;color:#DDD5CB">Testing showed players could <b>just stop moving</b> to finish last. I forced constant forward speed (no brake) and made the AI fight to lose too, so the race stays tense.</p>
+      </div>
+    </div>
+
+    <div class="col" style="gap:20px">
+      <!-- IMG 09-A: الكي آرت/الشعار (رسمة الجوهرة) -->
+      <div class="frame"><div class="ph" data-img="09-A" style="height:450px"><span class="id">IMG 09-A</span>
+        <b>Key art / logo — Djinn on the flying carpet</b>
+        <small>البوستر أو لقطة السباق في السوق المسحور</small>
+        <span class="sz">1060 × 450</span>
+      </div></div>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:20px">
+        <div class="ph" data-img="09-B" style="height:210px"><span class="id">IMG 09-B</span><b>Comic intro panel</b><small>لوحة من القصة المصورة</small><span class="sz">340 × 210</span></div>
+        <div class="ph" data-img="09-C" style="height:210px"><span class="id">IMG 09-C</span><b>Catching the Freeze Curse</b><small>لحظة التقاط لعنة التجميد</small><span class="sz">340 × 210</span></div>
+        <div class="ph" data-img="09-D" style="height:210px"><span class="id">IMG 09-D</span><b>Results screen — last = win</b><small>شاشة النتائج</small><span class="sz">340 × 210</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Art, 3D & animation: Aljawharah Bahashwan · Programming & UI: Samar Abdul Wahab</span><span><a href="https://yara-gimu.itch.io/carpet-calamity" style="color:inherit;text-decoration:none">▶ yara-gimu.itch.io/carpet-calamity</a></span></div>
+</section>
+
+<!-- ╔═══════════════════ PAGE 07 — CARPET · AI & BALANCING ═══════════════════╗ -->
+<section class="page t-carpet">
+  <div class="hud"><span>Stage 02 · Systems Breakdown</span><span class="stage">Carpet Calamity</span><span>10 / 14</span></div>
+  <div class="kicker">AI · Balancing · Game Feel</div>
+  <h1 class="title" style="font-size:58px;margin-bottom:34px">An AI That Tries to Lose</h1>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr;flex:1">
+    <div class="col">
+      <div class="card acc">
+        <span class="num">FIXEDUPDATE</span>
+        <h2>Rubberbanding State Machine</h2>
+        <p style="font-size:17.5px;margin-bottom:18px">Every physics step the AI compares its <b>Z-distance</b> to the player and switches state.</p>
+        <div class="flow">
+          <div class="node"><b style="color:#F87171">Panic Brake</b><span>Too far ahead → steer into curses</span></div><div class="arrow">⇄</div>
+          <div class="node hl"><b style="color:var(--acc-2)">Neutral</b><span>Close race → normal dodging</span></div><div class="arrow">⇄</div>
+          <div class="node"><b style="color:#4ADE80">Catch-Up</b><span>Player lagging → velocity boost</span></div>
+        </div>
+      </div>
+      <!-- كود: استبدليه بكودك الحقيقي من المشروع لو تقدرين (أقوى للـ Unity) -->
+      <div class="card" style="flex:1;background:#0B0A0F;font-family:'JetBrains Mono',monospace;font-size:15.5px;line-height:1.7;color:#CFC7BD;white-space:pre">
+<span style="color:#6E665E">// Pseudocode — replace with your real script</span>
+<span style="color:#C084FC">void</span> FixedUpdate() {
+  <span style="color:#C084FC">float</span> dz = transform.position.z - player.position.z;
+  <span style="color:#C084FC">if</span>      (dz &gt;  aheadLimit)  state = <span style="color:#F87171">PanicBrake</span>;
+  <span style="color:#C084FC">else if</span> (dz &lt; -behindLimit) state = <span style="color:#4ADE80">CatchUp</span>;
+  <span style="color:#C084FC">else</span>                        state = <span style="color:#2DD4BF">Neutral</span>;
+  ApplyState(state);
+}</div>
+    </div>
+
+    <div class="col">
+      <div class="card">
+        <h2>Curse & Obstacle Balancing</h2>
+        <table>
+          <tr><th>Pick-up</th><th>Effect</th><th>Duration</th><th>Value</th></tr>
+          <tr><td>❄️ Freeze Curse</td><td>−100% (full stop)</td><td>2.0 s</td><td class="pos">High · target</td></tr>
+          <tr><td>🪨 Heavy Rock</td><td>−40% speed</td><td>Permanent</td><td class="mid">Medium · target</td></tr>
+          <tr><td>🌬️ Wind Gust</td><td>−20% speed</td><td>5.0 s</td><td class="mid">Low · target</td></tr>
+          <tr><td>⚡ Speed Trap</td><td>+30% speed</td><td>Until cursed</td><td class="neg">Negative · avoid</td></tr>
+        </table>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1.2fr;gap:24px;flex:1">
+        <div class="card">
+          <h3>Game Feel</h3>
+          <ul class="list">
+            <li>FOV widens as speed rises</li>
+            <li>Screen shake on obstacle hit</li>
+            <li>Carpet banks with mouse X</li>
+            <li>Camera zooms in on curses</li>
+          </ul>
+        </div>
+        <!-- IMG 10-A: GIF للسجادة وهي تميل والكاميرا تتوسع -->
+        <div class="ph" data-img="10-A"><span class="id">IMG 10-A</span><b>GIF — banking & FOV shift</b><small>GIF قصير لحركة السجادة</small><span class="sz">490 × 300</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ╔═══════════════════ PAGE 08 — VAMPIRE GROCERIES ═══════════════════╗ -->
+<section class="page t-vampire">
+  <div class="hud"><span>Stage 03 · Game Jam</span><span class="stage">Dracula Day Off</span><span>11 / 14</span></div>
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:34px">
+    <div>
+      <div class="kicker">2D Stealth-Action · SOP Game Jam · Formerly "Vampire Groceries"</div>
+      <h1 class="title">Dracula Day Off</h1>
+    </div>
+    <span class="badge"><span class="ico">🏅</span>6th Place — SOP Game Jam · Aug 2026</span>
+  </div>
+
+  <div class="grid" style="grid-template-columns:820px 1fr;flex:1">
+    <div class="col" style="gap:20px">
+      <!-- IMG 11-A: لقطة مصاص الدماء بالبيجاما في الشارع المشمس -->
+      <div class="frame"><div class="ph" data-img="11-A" style="height:440px"><span class="id">IMG 11-A</span><b>Dracula in pajamas on a sunny European street</b><small>لقطة اللعب الرئيسية أو البوستر</small><span class="sz">820 × 440</span></div></div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:20px;flex:1">
+        <div class="ph" data-img="11-B"><span class="id">IMG 11-B</span><b>GIF — shadow-hopping behind a truck</b><small>GIF يتخبى ورا ظل الشاحنة</small><span class="sz">400 × 300</span></div>
+        <div class="ph" data-img="11-C"><span class="id">IMG 11-C</span><b>Burn vignette close-up</b><small>تأثير الاحتراق على أطراف الشاشة</small><span class="sz">400 × 300</span></div>
+      </div>
+    </div>
+
+    <div class="col" style="gap:22px">
+      <p class="lead">Dracula ate all the tomatoes — now his wife sends him out <b>at noon</b>. Shadow-hop across
+        moving shade to reach the grocery store before you turn to ash.</p>
+
+      <div class="card acc">
+        <h3 style="margin-bottom:14px">Core Loop — Thermal Exposure</h3>
+        <div class="flow">
+          <div class="node"><b>☀ Sun</b><span>Heat rises</span></div><div class="arrow">→</div>
+          <div class="node hl"><b>Dive</b><span>Nearest shadow</span></div><div class="arrow">→</div>
+          <div class="node"><b>Cool</b><span>Heat resets</span></div><div class="arrow">→</div>
+          <div class="node"><b>Advance</b><span>Read traffic & clouds</span></div>
+        </div>
+      </div>
+
+      <div class="role">
+        <div class="lbl">My Role</div>
+        <h3>Game Designer & Gameplay Programmer</h3>
+        <ul class="list">
+          <li>Designed the heat system around moving shadows (trucks, clouds, café umbrellas).</li>
+          <li>Replaced the health bar with diegetic feedback: burn vignette + smoke particles.</li>
+          <li>Wrote the audio brief: sizzle → racing heartbeat → cartoon "phew".</li>
+          <li>Integrated the Qwacks player-analytics platform to show a fastest-run leaderboard.</li>
+        </ul>
+      </div>
+      <div style="display:flex;gap:14px;margin-top:auto">
+        <a class="btn" href="https://soulvayu.itch.io/dracula-day-off">▶ Play on itch.io</a>
+        <span class="tag" style="align-self:center">Team: Yara Al-Alawi · Aljawharah Bahashwan</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ╔═══════════════════ PAGE 09 — NIGHT OF THE LAST REFUGE ═══════════════════╗ -->
+<section class="page t-night">
+  <div class="hud"><span>Stage 04 · Bootcamp Final Project</span><span class="stage">Night of the Last Refuge</span><span>12 / 14</span></div>
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:34px">
+    <div>
+      <div class="kicker">First-Person Survival Horror · Puzzle · PC</div>
+      <h1 class="title">Night of the Last Refuge</h1>
+    </div>
+    <span class="badge"><span class="ico">🔦</span>NYWTK Bootcamp · Final Project</span>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr 1fr;flex:1">
+    <div class="col" style="gap:20px">
+      <div class="frame"><div class="ph" data-img="12-A" style="height:250px"><span class="id">IMG 12-A</span><b>Foggy railway — flashlight view</b><small>لقطة المحطة بالضباب والكشاف</small><span class="sz">520 × 250</span></div></div>
+      <p style="color:#DDD5CB">Trapped in a fog-covered railyard at nightfall, the survivor scavenges scarce ammo and torn notes to crack the code of the last safehouse.</p>
+      <div class="role" style="flex:1">
+        <div class="lbl">My Role</div>
+        <h3>Lead Game Designer, Level Designer & Programmer</h3>
+        <ul class="list">
+          <li>Designed the hub layout and the resource economy.</li>
+          <li>Built sound-driven enemy spawning outside the player's view.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card acc">
+        <h2>Acoustic Aggro</h2>
+        <p style="font-size:17px;margin-bottom:16px">Firing gives instant safety but <b>calls unseen enemies from the fog</b>.</p>
+        <div class="col" style="gap:6px">
+          <div class="node"><b>Roaming</b><span>Zombies wander out of FOV</span></div>
+          <div class="arrow" style="width:auto;height:14px;font-size:15px">↓ gunshot / proximity</div>
+          <div class="node hl"><b>Alerted</b><span>Spawn & move to sound source</span></div>
+          <div class="arrow" style="width:auto;height:14px;font-size:15px">↓ player seen</div>
+          <div class="node"><b style="color:#F87171">Pursuit</b><span>Chase until player escapes</span></div>
+        </div>
+      </div>
+      <div class="card" style="flex:1">
+        <h3>Endogenous Economy</h3>
+        <table>
+          <tr><th>Item</th><th>Effect</th><th>Value</th></tr>
+          <tr><td>Handgun Ammo</td><td>+Bullets</td><td class="pos">High</td></tr>
+          <tr><td>Health Plant</td><td>+HP</td><td class="pos">High</td></tr>
+          <tr><td>Torn Note</td><td>Puzzle clue</td><td class="mid">Win condition</td></tr>
+          <tr><td>Key Item</td><td>Opens crates</td><td>Medium</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="col" style="gap:20px">
+      <!-- IMG 12-B: البلوك آوت / خريطة المستوى من فوق — هذا يهم مصممي المستويات -->
+      <div class="ph" data-fit="contain" data-img="12-B" style="flex:1"><span class="id">IMG 12-B</span><b>Level blockout — top-down map</b><small>خريطة المستوى من فوق: البيت بالنص والمناطق حوله</small><span class="sz">520 × 420</span></div>
+      <div class="card">
+        <h3>Spatial Design</h3>
+        <p style="font-size:17px">Central <b>safehouse hub</b> with radiating danger zones: open foggy tracks vs. a dark, confined warehouse.</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer"><span>Team: Sami (Programmer) · Dareen (Artist, Programmer)</span><span><a href="https://yara-gimu.itch.io/night-of-the-last-refuge-survival-puzzle-game" style="color:inherit;text-decoration:none">▶ Play on itch.io</a></span></div>
+</section>
+
+<!-- ╔═══════════════════ PAGE 10 — UNITY TOOLKIT & TECH SPOTLIGHT ═══════════════════╗ -->
+<!-- تجاوب على سؤال الفورم: Unity systems used + Unity technical problem you solved -->
+<section class="page t-mirrors">
+  <div class="hud"><span>Unity Experience</span><span class="stage">Toolkit & Tech Spotlight</span><span>13 / 14</span></div>
+  <div class="kicker">3 years in Unity · C#</div>
+  <h1 class="title" style="font-size:58px;margin-bottom:34px">Unity Toolkit</h1>
+
+  <div class="grid" style="grid-template-columns:1fr 820px;flex:1">
+    <div class="grid" style="grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);gap:22px">
+      <div class="card"><h3>⚙️ Physics</h3><p style="font-size:17px">Rigidbody flight, drag & banking · FixedUpdate AI logic · time-freeze on tagged objects</p></div>
+      <div class="card"><h3>🧠 AI & Logic</h3><p style="font-size:17px">State pattern FSMs · rubberbanding · dynamic NavMesh · sound-triggered spawning</p></div>
+      <div class="card"><h3>🎥 Camera & VFX</h3><p style="font-size:17px">Dynamic FOV · screen shake · post-processing vignette · particle systems</p></div>
+      <div class="card"><h3>🥽 VR</h3><p style="font-size:17px">Hands-on grab & place puzzles · VR inventory for mirror shards</p></div>
+      <div class="card"><h3>🖥️ UI & Input</h3><p style="font-size:17px">Diegetic UI · menus & results screens · device-aware input prompts</p></div>
+      <div class="card"><h3>📦 Architecture</h3><p style="font-size:17px">Game Programming Patterns · ScriptableObjects · Timeline · prefabs · builds on itch.io</p></div>
+    </div>
+
+    <div class="card acc" style="display:flex;flex-direction:column;gap:20px">
+      <div><div class="kicker">Tech Spotlight · Carpet Calamity</div>
+        <h2 style="font-size:30px">Players could win by doing nothing</h2></div>
+      <div class="grid" style="grid-template-columns:150px 1fr;gap:14px 20px;font-size:18px;line-height:1.5">
+        <span class="mono" style="color:#F87171;font-size:14px;padding-top:3px">PROBLEM</span>
+        <span style="color:#DDD5CB">In testing, players stopped steering and slowed down so the AI finished ahead — last place without effort.</span>
+        <span class="mono" style="color:#FACC15;font-size:14px;padding-top:3px">CAUSE</span>
+        <span style="color:#DDD5CB">Player speed could drop freely, and the AI raced normally, so the inverse rule had no counter-pressure.</span>
+        <span class="mono" style="color:#4ADE80;font-size:14px;padding-top:3px">FIX</span>
+        <span style="color:#DDD5CB">Forced constant forward momentum (no brake) and added a Z-distance state machine in FixedUpdate so the AI also tries to lose.</span>
+        <span class="mono" style="color:var(--acc);font-size:14px;padding-top:3px">RESULT</span>
+        <span style="color:#DDD5CB">Tense race to the final second · <b>2nd place</b> at Qabas Game Jam.</span>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:16px;flex:1">
+        <div class="node" style="text-align:left;padding:18px 20px;border-color:#7F1D1D"><span class="mono" style="color:#F87171;font-size:13px;letter-spacing:.15em">BEFORE ✗</span>
+          <span style="font-size:16px;color:#DDD5CB;margin-top:8px">Speed can drop to zero<br>AI races normally<br>Idle player = guaranteed last</span></div>
+        <div class="node hl" style="text-align:left;padding:18px 20px;border-color:#15803D"><span class="mono" style="color:#4ADE80;font-size:13px;letter-spacing:.15em">AFTER ✓</span>
+          <span style="font-size:16px;color:#DDD5CB;margin-top:8px">Forced forward speed<br>AI: Panic Brake · Neutral · Catch-Up<br>Player must hunt curses to lose</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ╔═══════════════════ PAGE 11 — MORE TITLES + EDUCATION + CONTACT ═══════════════════╗ -->
+<section class="page t-mirrors">
+  <div class="hud"><span>Bonus Levels</span><span class="stage">Continue? ▶ Yes</span><span>14 / 14</span></div>
+
+  <div class="grid" style="grid-template-columns:1fr 640px;flex:1">
+    <div class="col">
+      <div><div class="kicker">More Titles</div><h1 class="title" style="font-size:52px">Side Quests</h1></div>
+      <div class="grid" style="grid-template-columns:repeat(2,1fr);gap:22px">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="ph" data-img="14-A" style="height:260px;border-radius:0;border-width:0 0 2px 0"><span class="id">IMG 14-A</span><b>Tama & the Dirty Bubbles</b><span class="sz">520 × 260</span></div>
+          <div style="padding:20px 22px"><h3><a href="https://yara-gimu.itch.io/tama-and-the-dirty-bubbles" style="color:inherit;text-decoration:none">Tama & the Dirty Bubbles ↗</a></h3><p class="mono" style="font-size:13px;color:var(--acc);margin-bottom:8px">GLOBAL GAME JAM · PRODUCER & LEVEL DESIGNER</p><p style="font-size:16px">2D platformer balancing precise jumps, bubble purification and a strict heart economy.</p></div>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="ph" data-img="14-B" style="height:260px;border-radius:0;border-width:0 0 2px 0"><span class="id">IMG 14-B</span><b>Mirrors of Time VR</b><span class="sz">520 × 260</span></div>
+          <div style="padding:20px 22px"><h3><a href="https://yara-gimu.itch.io/mirror-of-time-vr-prototype-edition" style="color:inherit;text-decoration:none">Mirrors of Time — VR ↗</a></h3><p class="mono" style="font-size:13px;color:var(--acc);margin-bottom:8px">LEAD VR PROGRAMMER</p><p style="font-size:16px">The original v1 prototype (AlUla only): physical Thamudic poetry puzzles.</p></div>
+        </div>
+      </div>
+      <div class="card" style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:28px">
+        <div><div class="kicker">Education</div><h3>B.Sc. Computer Science</h3><p style="font-size:17px">King Abdulaziz University, Jeddah · Graduated June 2026 · GPA 4.32 / 5.0</p></div>
+        <div><div class="kicker">Programs & Labs</div><p style="font-size:17px">Game by CODE (MCIT) — 1st Place · Code Lab (MCIT) · MVP Lab (NTDP) · NYWTK Bootcamp</p></div>
+      </div>
+    </div>
+
+    <div class="card acc" style="display:flex;flex-direction:column;justify-content:space-between;padding:40px">
+      <div>
+        <div class="kicker">Thanks for playing</div>
+        <h1 class="title" style="font-size:60px;line-height:1.05">Let's build<br>something<br><span style="color:var(--acc)">memorable.</span></h1>
+      </div>
+      <div class="col" style="gap:14px;font-size:20px">
+        <div><span class="mono" style="color:var(--muted);font-size:14px">EMAIL</span><br><b><a href="mailto:yaraalalawi30@gmail.com" style="color:inherit;text-decoration:none">yaraalalawi30@gmail.com</a></b></div>
+        <div><span class="mono" style="color:var(--muted);font-size:14px">PLAY</span><br><b><a href="https://yara-gimu.itch.io/" style="color:inherit;text-decoration:none">yara-gimu.itch.io</a></b></div>
+        <div><span class="mono" style="color:var(--muted);font-size:14px">CODE</span><br><b><a href="https://github.com/Yara-Gimu" style="color:inherit;text-decoration:none">github.com/Yara-Gimu</a></b></div>
+        <div><span class="mono" style="color:var(--muted);font-size:14px">CONNECT</span><br><b><a href="https://www.linkedin.com/in/yara-alalawi" style="color:inherit;text-decoration:none">linkedin.com/in/yara-alalawi</a></b></div>
+      </div>
+      <!-- IMG 14-D: QR كود يودي لـ itch.io (سويه من أي موقع QR مجاني) -->
+      <div style="display:flex;gap:20px;align-items:center">
+        <div class="ph" data-img="QR" data-fit="contain" style="width:150px;height:150px;padding:10px;flex:none"><span class="id" style="font-size:10px;top:6px;left:6px">QR</span><small>QR itch.io</small></div>
+        <p style="font-size:16px">Scan to play my games in the browser.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* يحمّل الصور من مجلد images تلقائياً: images/03-A.jpg (أو png / webp / gif)
+   لو الصورة مو موجودة يبقى المربع الفاضي مكانها */
+document.querySelectorAll('.ph[data-img]').forEach(function(ph){
+  var exts=['jpg','png','webp','jpeg','gif','svg'], i=0, img=new Image();
+  img.className='fill'; img.alt=ph.dataset.img;
+  img.onload=function(){ ph.prepend(img); ph.classList.add('filled'); };
+  img.onerror=function(){ if(++i<exts.length) img.src='images/'+ph.dataset.img+'.'+exts[i]; };
+  img.src='images/'+ph.dataset.img+'.'+exts[0];
+});
+</script>
+</body>
+</html>
